@@ -1,3 +1,8 @@
+## XLNet for Chinese sentiment analysis
+* sh ./senti_train.sh
+* sh ./senti_eval.sh
+* sh ./senti_pred.sh
+
 ## Introduction
 
 **XLNet** is a new unsupervised language representation learning method based on a novel generalized permutation language modeling objective. Additionally, XLNet employs [Transformer-XL](https://arxiv.org/abs/1901.02860) as the backbone model, exhibiting excellent performance for language tasks involving long context. Overall, XLNet achieves state-of-the-art (SOTA) results on various downstream language tasks including question answering, natural language inference, sentiment analysis, and document ranking.
