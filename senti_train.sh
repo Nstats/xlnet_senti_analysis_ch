@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-python run_classifier.py \
+python senti_analysis.py \
   --do_train=True \
   --task_name=senti \
   --data_dir=./data/sentiment \
