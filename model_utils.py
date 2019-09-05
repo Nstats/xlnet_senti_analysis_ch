@@ -43,7 +43,7 @@ def configure_tpu(FLAGS):
   per_host_input = tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
   run_config = tf.contrib.tpu.RunConfig(
       master=master,
-      model_dir=FLAGS.model_dir,
+      model_dir=FLAGS.output_dir,
       session_config=session_config,
       tpu_config=tf.contrib.tpu.TPUConfig(
           iterations_per_loop=FLAGS.iterations,

@@ -27,6 +27,7 @@ import function_builder
 from classifier_utils import PaddingInputExample
 from classifier_utils import convert_single_example
 from prepro_utils import preprocess_text, encode_ids
+import tokenization
 
 
 # Model
@@ -64,15 +65,15 @@ flags.DEFINE_string("output_dir", default="",
       help="Output dir for TF records.")
 flags.DEFINE_string("spiece_model_file", default="",
       help="Sentence Piece model path.")
-flags.DEFINE_string("model_dir", default="",
-      help="Directory for saving the finetuned model.")
 flags.DEFINE_string("data_dir", default="",
       help="Directory for input data.")
+flags.DEFINE_string('train_dir', 'train_mix_balanced.tsv',
+      help='training data file name.')
 
 # TPUs and machines
 flags.DEFINE_bool("use_tpu", default=False, help="whether to use TPU.")
 flags.DEFINE_integer("num_hosts", default=1, help="How many TPU hosts.")
-flags.DEFINE_integer("num_core_per_host", default=8,
+flags.DEFINE_integer("num_core_per_host", default=1,
       help="8 for TPU v2 and v3-8, 16 for larger TPU v3 pod. In the context "
       "of GPU training, it refers to the number of GPUs used.")
 flags.DEFINE_string("tpu_job_name", default=None, help="TPU worker job name.")
@@ -392,6 +393,43 @@ class StsbProcessor(GLUEProcessor):
     return examples
 
 
+class SentimentProcessor(DataProcessor):
+  """Processor for the sentiment data set (GLUE version)."""
+
+  def get_train_examples(self, data_dir):
+    """See base class."""
+    return self._create_examples(
+        self._read_tsv(os.path.join(data_dir, FLAGS.train_dir)), "train")
+
+  def get_dev_examples(self, data_dir):
+    """See base class."""
+    return self._create_examples(
+        self._read_tsv(os.path.join(data_dir, FLAGS.dev_dir)), "dev")
+
+  def get_test_examples(self, data_dir):
+    """See base class."""
+    return self._create_examples(
+        self._read_tsv(os.path.join(data_dir, FLAGS.test_dir)), "test")
+
+  def get_labels(self):
+    """See base class."""
+    return ["0", "1", "2"]
+
+  def _create_examples(self, lines, set_type):
+    """Creates examples for the training and dev sets."""
+    examples = []
+    for (i, line) in enumerate(lines):
+      qid = "%s-%s" % (set_type, i)
+      text = tokenization.convert_to_unicode(line[2])
+      if set_type == "test":
+        label = "0"
+      else:
+        label = tokenization.convert_to_unicode(line[0])
+      examples.append(
+          InputExample(guid=qid, text_a=text, label=label))
+    return examples
+
+
 def file_based_convert_examples_to_features(
     examples, label_list, max_seq_length, tokenize_fn, output_file,
     num_passes=1):
@@ -615,7 +653,7 @@ def get_model_fn(n_class):
 
         host_call = function_builder.construct_scalar_host_call(
             monitor_dict=monitor_dict,
-            model_dir=FLAGS.model_dir,
+            model_dir=FLAGS.output_dir,
             prefix="train/",
             reduce_fn=tf.reduce_mean)
       else:
@@ -650,7 +688,8 @@ def main(_):
       "mnli_mismatched": MnliMismatchedProcessor,
       'sts-b': StsbProcessor,
       'imdb': ImdbProcessor,
-      "yelp5": Yelp5Processor
+      "yelp5": Yelp5Processor,
+      "sentiment": SentimentProcessor
   }
 
   if not FLAGS.do_train and not FLAGS.do_eval and not FLAGS.do_predict:
@@ -756,12 +795,12 @@ def main(_):
 
     # Filter out all checkpoints in the directory
     steps_and_files = []
-    filenames = tf.gfile.ListDirectory(FLAGS.model_dir)
+    filenames = tf.gfile.ListDirectory(FLAGS.output_dir)
 
     for filename in filenames:
       if filename.endswith(".index"):
         ckpt_name = filename[:-6]
-        cur_filename = join(FLAGS.model_dir, ckpt_name)
+        cur_filename = join(FLAGS.output_dir, ckpt_name)
         global_step = int(cur_filename.split("-")[-1])
         tf.logging.info("Add {} to eval list.".format(cur_filename))
         steps_and_files.append([global_step, cur_filename])
