@@ -23,8 +23,8 @@ def configure_tpu(FLAGS):
   else:
     tpu_cluster = None
     master = FLAGS.master
-
-  session_config = tf.ConfigProto(allow_soft_placement=True)
+  gpu_options = tf.GPUOptions(allow_growth=True)
+  session_config = tf.ConfigProto(allow_soft_placement=True, gpu_options=gpu_options)
   # Uncomment the following line if you hope to monitor GPU RAM growth
   # session_config.gpu_options.allow_growth = True
 
@@ -52,7 +52,8 @@ def configure_tpu(FLAGS):
       keep_checkpoint_max=FLAGS.max_save,
       save_checkpoints_secs=None,
       save_checkpoints_steps=FLAGS.save_steps,
-      train_distribute=strategy
+      train_distribute=strategy,
+      save_summary_steps=100
   )
   return run_config
 

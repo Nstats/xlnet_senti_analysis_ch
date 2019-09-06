@@ -69,6 +69,7 @@ flags.DEFINE_string("data_dir", default="",
       help="Directory for input data.")
 flags.DEFINE_string('train_dir', 'train_mix_balanced.tsv',
       help='training data file name.')
+flags.DEFINE_string('dev_dir','train_mix_balanced.tsv',help='dev data file name.')
 
 # TPUs and machines
 flags.DEFINE_bool("use_tpu", default=False, help="whether to use TPU.")
@@ -98,7 +99,7 @@ flags.DEFINE_float("min_lr_ratio", default=0.0,
 flags.DEFINE_float("clip", default=1.0, help="Gradient clipping")
 flags.DEFINE_integer("max_save", default=0,
       help="Max number of checkpoints to save. Use 0 to save all.")
-flags.DEFINE_integer("save_steps", default=None,
+flags.DEFINE_integer("save_steps", default=1000,
       help="Save the model for every save_steps. "
       "If None, not to save any model.")
 flags.DEFINE_integer("train_batch_size", default=8,
@@ -559,6 +560,7 @@ def get_model_fn(n_class):
       (total_loss, per_example_loss, logits
           ) = function_builder.get_classification_loss(
           FLAGS, features, n_class, is_training)
+    train_loss = tf.summary.scalar('train_loss', total_loss)   
 
     #### Check model parameters
     num_params = sum([np.prod(v.shape) for v in tf.trainable_variables()])
