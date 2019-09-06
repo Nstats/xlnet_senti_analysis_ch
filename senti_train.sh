@@ -5,6 +5,7 @@ python senti_analysis.py \
   --task_name=sentiment \
   --data_dir=./data/sentiment \
   --train_dir='train_mix.tsv' \
+  --test_dir='test_mix.tsv' \
   --predict_dir=./data/sentiment/output \
   --output_dir=./data/sentiment/output \
   --uncased=False \

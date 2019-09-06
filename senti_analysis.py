@@ -69,7 +69,8 @@ flags.DEFINE_string("data_dir", default="",
       help="Directory for input data.")
 flags.DEFINE_string('train_dir', 'train_mix_balanced.tsv',
       help='training data file name.')
-flags.DEFINE_string('dev_dir','train_mix_balanced.tsv',help='dev data file name.')
+flags.DEFINE_string('dev_dir', 'train_mix_balanced.tsv', help='dev data file name.')
+flags.DEFINE_string('test_dir', 'test_mix.tsv')
 
 # TPUs and machines
 flags.DEFINE_bool("use_tpu", default=False, help="whether to use TPU.")
@@ -113,7 +114,7 @@ flags.DEFINE_bool("do_eval", default=False, help="whether to do eval")
 flags.DEFINE_bool("do_predict", default=False, help="whether to do prediction")
 flags.DEFINE_float("predict_threshold", default=0,
       help="Threshold for binary prediction.")
-flags.DEFINE_string("eval_split", default="dev", help="could be dev or test")
+flags.DEFINE_string("eval_split", default="test", help="could be dev or test")
 flags.DEFINE_integer("eval_batch_size", default=128,
       help="batch size for evaluation")
 flags.DEFINE_integer("predict_batch_size", default=128,
@@ -856,7 +857,7 @@ def main(_):
 
     predict_results = []
     with tf.gfile.Open(os.path.join(predict_dir, "{}.tsv".format(
-        task_name)), "w") as fout:
+        'submission')), "w") as fout:
       fout.write("index\tprediction\n")
 
       for pred_cnt, result in enumerate(estimator.predict(
